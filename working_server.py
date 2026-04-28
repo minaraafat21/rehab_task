@@ -69,6 +69,9 @@ while True:
     try:
         data, addr = sock.recvfrom(1024)
         message = data.decode('utf-8').strip()
+
+        print(f"Received from ESP32: {message}") 
+        values = [float(v) for v in message.split(',') if v.strip()]
         
         # Parse CSV: ax,ay,az,gx,gy,gz
         values = [float(v) for v in message.split(',') if v.strip()]

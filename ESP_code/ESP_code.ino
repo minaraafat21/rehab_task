@@ -85,11 +85,15 @@
 #include <WiFiUdp.h>
 
 // WiFi credentials
-const char* ssid = "STUDBME2";
-const char* password = "BME2Stud";
+// const char* ssid = "STUDBME2";
+// const char* password = "BME2Stud";
+
+const char* ssid = "mina,sara";
+const char* password = "samsung123";
 
 // Network destination (MUST MATCH YOUR PYTHON COMPUTER'S IP)
-const char* targetIP = "172.28.128.103"; 
+// const char* targetIP = "172.28.128.103"; 
+const char* targetIP = "192.168.1.16"; 
 const int targetPort = 8080;         
    
 
@@ -162,11 +166,11 @@ void loop() {
         prediction.trim();
         
         // Pass the prediction with a prefix 'P' so Arduino can identify it
-        Serial.print('P'); 
+        // Serial.print('P'); 
         Serial.println(prediction);
         
         // Optional debug for PC
-        // Serial.println("DEBUG: Sent P" + prediction + " to Arduino");
+        Serial.println("DEBUG: Sent P" + prediction + " to Arduino");
     }
 }
 

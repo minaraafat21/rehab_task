@@ -5,11 +5,19 @@
 #include <Wire.h>
 #include <addons/TokenHelper.h> 
 
+
+#include <ESP32Servo.h>
+
+static const int servoPin = 13;
+Servo legServo;
+
+
 // =========================================
 // 1. NETWORK & FIREBASE CREDENTIALS
 // =========================================
-#define WIFI_SSID "Orange-207C"
-#define WIFI_PASSWORD "BQED6B14B91"
+#define WIFI_SSID "Mina.W"
+#define WIFI_PASSWORD "12345678"
+
 
 #define API_KEY "AIzaSyAusWKwJZgqoRC8xY-uBs6vazBQH2ULfI8" 
 #define USER_EMAIL "prosthetic@test.com"
@@ -21,6 +29,7 @@
 // =========================================
 Adafruit_MPU6050 mpu;
 
+
 // ---> FIX 1: Two separate Firebase objects to prevent collisions <---
 FirebaseData fbdo_read;
 FirebaseData fbdo_write;
@@ -31,18 +40,18 @@ unsigned long sendDataPrevMillis = 0;
 unsigned long printPrevMillis = 0; // New timer just for a clean Serial Monitor
 int current_prediction = -1; 
 
-const char* classNames[] = {"Sitting", "Standing", "Walking", "Running", "Stairs Up", "Stairs Down", "Falling"};
+const char* classNames[] = {"Sitting", "Walking", "Ramp Ascent", "Ramp Descent", "Stair Ascent", "Stair Descent", "Standing"};
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
-
+  legServo.attach(servoPin);
   Serial.println("\n\n========================================");
   Serial.println("   PROSTHETIC LEG IMU MONITORING");
   Serial.println("========================================\n");
 
   // Initialize MPU6050
-  Wire.begin(21, 20);
+  Wire.begin(21, 22);
   if (!mpu.begin()) {
     Serial.println("Trying alt I2C pins 8,9...");
     Wire.begin(8, 9);
@@ -86,6 +95,7 @@ void loop() {
 
     sensors_event_t a, g, temp;
     mpu.getEvent(&a, &g, &temp);
+    Serial.print(a.acceleration.x); 
 
     // READ the AI prediction using the dedicated READ object
     if (Firebase.ready()) {
@@ -131,5 +141,105 @@ void loop() {
     }
     Serial.println("║");
     Serial.println("╚════════════════════════════════════════╝");
+    Serial.println(current_prediction);
+    switch (current_prediction) {
+      case 0: // Sitting
+      case 6: //Standing
+        legServo.write(90);
+        break;
+
+      case 1: // Walking 
+      case 2: // Ramp ascent
+      case 4: // Stairs Up 
+      
+        // legServo.write(90); 
+        // // Serial.println("Stopped");
+        // delay(1000); 
+
+        legServo.write(0);  
+        // Serial.println("Spinning: Direction A");
+        delay(100); 
+
+        // Stop the motor
+        legServo.write(90); 
+        // Serial.println("Stopped");
+        delay(1000); 
+
+        // Spin full speed in the opposite direction
+        legServo.write(180); 
+        // Serial.println("Spinning: Direction B");
+        delay(100); 
+        legServo.write(90); 
+        // Serial.println("Stopped");
+        delay(1000); 
+
+        // Stop the motor
+        // legServo.write(90); 
+        // // Serial.println("Stopped");
+        // delay(1000); 
+        // Alternate every 200 ms without blocking the loop
+        // if (currentMillis - previousMillis >= 400) {
+        //   previousMillis = currentMillis;
+        //   isForwardStroke = !isForwardStroke;
+        //   legServo.write(isForwardStroke ? FORWARD : BACKWARD);
+        // }
+        break;
+      case 5: // Stairs Down
+      case 3: // ramp decent
+        // legServo.write(90); 
+        // // Serial.println("Stopped");
+        // delay(1000); 
+
+        legServo.write(180);  
+        // Serial.println("Spinning: Direction A");
+        delay(100); 
+
+        // Stop the motor
+        legServo.write(90); 
+        // Serial.println("Stopped");
+        delay(1000); 
+
+        // Spin full speed in the opposite direction
+        legServo.write(0); 
+        // Serial.println("Spinning: Direction B");
+        delay(100); 
+        legServo.write(90); 
+        // Serial.println("Stopped");
+        delay(1000); 
+        break;
+        
+      // case 3: // Running
+      //   // Alternate every 400 ms without blocking the loop
+      //   // if (currentMillis - previousMillis >= 200) {
+      //   //   previousMillis = currentMillis;
+      //   //   isForwardStroke = !isForwardStroke;
+      //   //   legServo.write(isForwardStroke ? FORWARD : BACKWARD);
+      //   // }
+      //   // legServo.write(90); 
+      //   // // Serial.println("Stopped");
+      //   // delay(500); 
+
+      //   legServo.write(0);  
+      //   // Serial.println("Spinning: Direction A");
+      //   delay(100); 
+
+      //   // Stop the motor
+      //   legServo.write(90); 
+      //   // Serial.println("Stopped");
+      //   delay(500); 
+
+      //   // Spin full speed in the opposite direction
+      //   legServo.write(180); 
+      //   // Serial.println("Spinning: Direction B");
+      //   delay(100); 
+      //   legServo.write(90); 
+      //   // Serial.println("Stopped");
+      //   delay(1000); 
+      //   // Stop the motor
+      //   // legServo.write(90); 
+      //   // // Serial.println("Stopped");
+      //   // delay(500); 
+      //   break;
+      }
   }
 }
